@@ -1,0 +1,77 @@
+<!--
+    (C) Copyright 2013 Cluain Krystian Szczęsny (http://it.cluain.pl) and others.
+
+    All rights reserved. This program and the accompanying materials
+    are made available under the terms of the GNU Lesser General Public License
+    (LGPL) version 2.1 which accompanies this distribution, and is available at
+    http://www.gnu.org/licenses/lgpl-2.1.html
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    Lesser General Public License for more details.
+
+    User: Krystian Szczęsny
+    Date: 10/15/13
+    Time: 9:02 AM
+-->
+
+<project name="corona-busted" default="deploy" basedir=".">
+
+    <description>Copy files to dist directory</description>
+
+
+    <!-- set global properties for this build -->
+    <property name="dist" location="dist"/>
+    <property name="busted.path" location="/opt/local/share/luarocks/bin/busted"/>
+    <property name="system.path" location="/opt/local/share/luarocks/bin:/opt/local/bin:/opt/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/X11/bin:/usr/X11/bin"/>
+    <property name="lua.path" location="/opt/local/share/lua/5.1/?.lua;/opt/local/lib/luarocks/?.lua;./?.lua;/opt/local/share/lua/5.1/?.lua;/opt/local/share/lua/5.1/?/init.lua;/opt/local/lib/lua/5.1/?.lua;/opt/local/lib/lua/5.1/?/init.lua;/opt/local/share/luarocks/share/lua/5.1/?.lua;/opt/local/share/luarocks/share/lua/5.1/?/init.lua;"/>
+    <property name="lua.cpath" location="./?.so;/opt/local/lib/lua/5.1/?.so;/opt/local/lib/lua/5.1/?.so;/opt/local/share/luarocks/lib/lua/5.1/?.so;/opt/local/share/luarocks/lib/lua/5.1/?/core.so;"/>
+
+
+    <target name="deploy" description="Deploy files">
+        <!-- Create the distribution directory -->
+        <mkdir dir="${dist}"/>
+
+        <copy toDir="${dist}" flatten="true" preservelastmodified="true">
+            <fileset dir="mocks">
+                <include name="**"/>
+            </fileset>
+            <fileset dir="suites">
+                <include name="**"/>
+            </fileset>
+            <fileset dir="customAsserts">
+                <include name="**"/>
+            </fileset>
+            <fileset dir="tools">
+                <include name="**"/>
+            </fileset>
+            <file file="test.lua"/>
+        </copy>
+
+        <delete includeemptydirs="true">
+            <fileset dir="${dist}">
+                <and>
+                    <size value="0"/>
+                    <type type="dir"/>
+                </and>
+            </fileset>
+        </delete>
+
+    </target>
+
+    <target name="test" description="Perform tests">
+        <exec executable="${busted.path}" dir="${dist}">
+            <arg line="-o plain_terminal"/>
+            <env key="PATH" value="${system.path}"/>
+            <env key="LUA_CPATH" value="${lua.cpath}"/>
+            <env key="LUA_PATH" value="${lua.path}"/>
+            <arg value="test.lua"/>
+        </exec>
+    </target>
+
+    <target name="clean" description="Clean up everything">
+        <delete dir="${dist}"/>
+    </target>
+
+</project>
